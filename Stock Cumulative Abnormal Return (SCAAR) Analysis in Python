@@ -1,0 +1,43 @@
+##Figure 1: Python SCAAR CODE
+
+import pandas as pa 
+import numpy as np 
+import scipy stats as stats
+
+data_path = '~/Desktop/apple.csv'
+t = pd.read_csv (data_path)
+scaar=[]
+
+for i in range(1,29):
+estimation_ret=t.1l0c［0:50,1:i+1］
+print(estimation_ret)
+estimation_mean=np.mean (estimation_ret)
+event_ret=t.iloc[50:53,i:i+1]
+print(event_ret)
+ab=event_ret-estimation_mean 
+caar=np.mean(ab)
+print(caar)
+event_std-np.std (ab, ddof=1)
+print (event_std)
+scar_event_std=caar/(event_std/np.sqrt(3))
+print (scaar_event_std) 
+scaar. append (scaar_event_std)
+
+##Figure 2: T-Test Statistic
+mean_scaar=np.mean(scaar)
+print (mean_scaar)
+std_scaar-np.std(scaar, ddof=1)
+print(std _scaar)
+t-mean_scaar/(std_scaar/np.sqrt(28))
+print(t)
+dof = 27
+#p-value for 2-sided test print (p)
+p = 2*stats.t.sf(abst), dof) 
+
+##Figure 3: Summary Statistics
+Laport pandas ae pd
+import numpy as np
+data path = '~/Desktop/apple.x1sx'
+t_data = pd.read_excel(data_path)
+t_data.head()
+t_data.describe()

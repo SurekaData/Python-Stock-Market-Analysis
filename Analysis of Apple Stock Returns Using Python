@@ -1,0 +1,122 @@
+#Analysing Apple Returns and Comparing them with the S&P 500
+
+## Figure 1: OLS and Summary Statistics
+
+```python
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+data_path = '/Users/Downloads/aapl.csv'
+t = pd.read_csv(data_path)
+
+#RET refers to Apple’s returns, vwretd refers to Apple’s value weighted returns, & sprtrn refers to the S&P 500
+
+y = t.RET
+y.describe()
+
+x = t.sprtrn
+x.describe()
+
+z = t.vwretd
+z.describe()
+
+x = sm.add_constant(x)
+model = sm.OLS(y, x).fit()
+summary = model.summary()
+print(summary)
+
+##Figure 2: 10 Year Returns
+
+import pandas as pd
+import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+data_path = '/Users/Downloads/aapl.csv'
+t = pd.read_csv(data_path)
+
+date = t.date
+return_aapl = t.RET
+return_index = t.sprtrn
+days = pd.to_datetime(date,dayfirst=True)
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.plot(days,return_aapl)
+ax.plot(days,return_index, 'r')
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+ax.xaxis.set_major_locator(mdates.DayLocator(interval=250))
+ax.tick_params(axis='x', labelrotation=45)
+plt.xlabel('Date')
+plt.ylabel('Returns')
+plt.title('Returns Of the Past 10 Years')
+plt.gca().legend(('AAPL','S&P'))
+plt.show()
+
+##Figure 3: Fit Plot
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+data_path = '/Users/Downloads/aapl.csv'
+t = pd.read_csv(data_path)
+
+y = t.RET
+x = t.sprtrn
+
+# Line of Best Fit
+xmean = np.mean(x)
+ymean = np.mean(y)
+xycov = (x - xmean) * (y - ymean)
+xvar = (x - xmean)**2
+beta = xycov.sum() / xvar.sum()
+alpha = ymean - (beta * xmean)
+ypred = alpha + beta * x
+print("Equation: Ye =", alpha, "+", beta,"* X")
+
+# Plot
+plt.figure()
+plt.scatter(x, y)
+plt.plot(x, ypred, 'r')
+plt.title('Returns against Index Return')
+plt.xlabel('S&P INDEX')
+plt.ylabel('AAPL')
+plt.show()
+
+Figure 4: AR(5) Model - S&P 500
+import pandas as pd
+import numpy as np
+from statsmodels.tsa.ar_model import AutoReg, ar_select_order
+
+data_path = '/Users/Downloads/aapl.csv'
+t_data = pd.read_csv(data_path)
+
+y = t_data.sprtrn
+
+# adding regressor
+mkt = t_data.vwretd
+
+# autoreg model summary chart
+mod = AutoReg(y, 5, old_names=False)
+res = mod.fit()
+print(res.summary())
+
+##Figure 5: AR(5) Model - AAPL
+import pandas as pd
+import numpy as np
+from statsmodels.tsa.ar_model import AutoReg, ar_select_order
+
+data_path = '/Users/Downloads/aapl.csv'
+t_data = pd.read_csv(data_path)
+
+y = t_data.RET
+
+# adding regressor
+mkt = t_data.vwretd
+
+# autoreg model summary chart
+mod = AutoReg(y, 5, old_names=False)
+res = mod.fit()
+print(res.summary())

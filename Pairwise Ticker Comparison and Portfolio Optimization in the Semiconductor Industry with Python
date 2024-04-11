@@ -1,0 +1,91 @@
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+# Input data file path
+indata = '~/Downloads/NewData.xlsx'
+
+# Read the Excel file into a pandas DataFrame
+t = pd.read_excel(indata)
+
+# Define pairs of tickers for comparison
+tic_pair = [['QCOM', 'NVDA'], ['INTC', 'AMD'], ['MU', 'MCHP']]
+
+# Initialize lists to store results
+Longshort = []
+longshort_in = []
+
+# Loop through each pair of tickers
+for x in tic_pair:
+    # Initialize lists to store intercepts and betas for each ticker in the pair
+    Intercept = []
+    Beta = []
+    ls = []
+
+    # Loop through each ticker in the pair
+    for tic in x:
+        # Filter data for the current ticker
+        s1 = t[t['TICKER'].str.contains(tic)]
+        s1.reset_index(drop=True, inplace=True)
+
+        # Select relevant independent variables for regression
+        X = s1[['mktrf', 'hml', 'smb']].iloc[:120]
+        X = sm.add_constant(X)
+
+        # Calculate excess returns
+        ret = 100 * (s1.RET - s1.rf)
+
+        # Fit Ordinary Least Squares (OLS) regression model
+        est = sm.OLS(ret.iloc[:120], X).fit()
+
+        # Print summary of the regression results
+        print("The model is for {}".format(tic))
+        print(est.summary())
+
+        # Extract coefficients from the summary table
+        df = pd.read_html(est.summary().tables[1].as_html(), header=0, index_col=0)[0]
+        i = df['coef'].values[0]
+        b = df['coef'].values[1]
+
+        # Append intercept and beta to respective lists
+        Intercept.append(i)
+        Beta.append(b)
+        ls.append(ret)
+
+        # Reset index for next iteration
+        ret.reset_index(drop=True, inplace=True)
+        X.reset_index(drop=True, inplace=True)
+
+        print()
+        print()
+
+    # Determine which ticker is short and which is long
+    short = np.argmax(Intercept)
+    long = np.argmin(Intercept)
+    b_long = Beta[short] / Beta[long]
+
+    # Compute long-short portfolio returns
+    temp = b_long * ls[long] - ls[short]
+    temp1 = temp.iloc[:120]
+    temp = temp.iloc[120:]
+
+    # Append long-short portfolio returns to respective lists
+    Longshort.append(temp)
+    longshort_in.append(temp1)
+
+# Compute average of long-short portfolio returns
+average_ls = np.mean(np.array(Longshort), axis=0)
+average_ls_in = np.mean(np.array(longshort_in), axis=0)
+
+# Filter market factor data for the remaining period
+vwretd = t[['mktrf', 'hml', 'smb']].iloc[120:]
+vwretd.reset_index(drop=True, inplace=True)
+vwretd = sm.add_constant(vwretd)
+
+# Fit OLS regression model to the average long-short portfolio returns
+est = sm.OLS(average_ls, vwretd).fit()
+
+# Print summary of the final regression model
+print("Final model taking average of longshort")
+print(est.summary())
+print("\n" * 5)
